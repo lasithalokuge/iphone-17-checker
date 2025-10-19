@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone 17 Pro Max Availability Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .store-card {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .store-card.available {
+            border-color: #4caf50;
+            background: #f1f8e9;
+        }
+
+        .store-card.unavailable {
+            border-color: #e0e0e0;
+        }
+
+        .store-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .availability-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .available {
+            background: #4caf50;
+            color: white;
+        }
+
+        .unavailable {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .timestamp {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 iPhone 17 Pro & Pro Max Checker</h1>
+            <p>Monitoring availability in Singapore Apple Stores</p>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div class="card">
+            <h2>System Status</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Scheduler Status</div>
+                    <div class="status-value" id="scheduler-status">Loading...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Check Interval</div>
+                    <div class="status-value" id="check-interval">Loading...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Total Checks</div>
+                    <div class="status-value" id="total-checks">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Last Check</div>
+                    <div class="status-value" id="last-check">Never</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="runManualCheck()" id="check-btn">
+                    Run Check Now
+                </button>
+                <button class="btn btn-success" onclick="sendTestSMS()" id="test-sms-btn">
+                    Send Test SMS
+                </button>
+                <button class="btn btn-warning" onclick="toggleScheduler()" id="toggle-scheduler">
+                    Pause Scheduler
+                </button>
+                <button class="btn btn-primary" onclick="updateInterval()">
+                    Update Interval
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Store Availability - Your Preference <br><small style="font-size: 0.7em; color: #666;"><span id="product-details">iPhone 17 Pro Max (256GB, Silver)</span></small></h2>
+            <div class="store-grid" id="stores-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading store information...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Other Options Available</h2>
+            <div id="other-options-container">
+                <div class="loading">
+                    <p>Checking for other available models...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Check History</h2>
+            <div class="history-list" id="history-container">
+                <div class="loading">Loading history...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let schedulerPaused = false;
+        let isChecking = false;
+
+        // Initialize dashboard
+        async function init() {
+            await updateStatus();
+            setInterval(updateStatus, 5000); // Update every 5 seconds
+        }
+
+        // Update status from API
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                // Update product details in heading
+                if (data.config && data.config.product) {
+                    const product = data.config.product;
+                    document.getElementById('product-details').textContent =
+                        `iPhone 17 Pro Max (${product.storage}, ${product.color})`
+                }
+
+                // Update scheduler status
+                document.getElementById('scheduler-status').textContent =
+                    data.scheduler.running ? 'Running' : 'Stopped';
+                document.getElementById('check-interval').textContent =
+                    `${data.scheduler.intervalMinutes} minute${data.scheduler.intervalMinutes !== 1 ? 's' : ''}`;
+                document.getElementById('total-checks').textContent =
+                    data.scheduler.checkCount;
+
+                // Update last check time
+                if (data.checker.lastCheck) {
+                    const lastCheck = new Date(data.checker.lastCheck);
+                    document.getElementById('last-check').textContent =
+                        lastCheck.toLocaleString('en-SG');
+                } else {
+                    document.getElementById('last-check').textContent = 'Never';
+                }
+
+                // Update stores
+                updateStores(data.checker.currentAvailability);
+                updateOtherOptions(data.checker.currentAvailability);
+
+                // Update history
+                await updateHistory();
+
+                // Update button states
+                isChecking = data.scheduler.currentlyChecking;
+                document.getElementById('check-btn').disabled = isChecking;
+                document.getElementById('check-btn').textContent =
+                    isChecking ? 'Checking...' : 'Run Check Now';
+
+            } catch (error) {
+                console.error('Failed to update status:', error);
+            }
+        }
+
+        // Update store availability display (for user's preferred model only)
+        function updateStores(availability) {
+            const container = document.getElementById('stores-container');
+
+            if (!availability || Object.keys(availability).length === 0) {
+                container.innerHTML = '<p>No store data available yet. Run a check to get started.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            // User's preference: iPhone 17 Pro Max, Silver, 256GB
+            const userPreferredSku = 'MZ7C3ZP/A'; // Pro Max, Silver, 256GB
+
+            for (const [storeId, data] of Object.entries(availability)) {
+                const storeCard = document.createElement('div');
+
+                // Check if user's preferred variant is available at this store
+                let isPreferredAvailable = false;
+                let preferredPickupTime = '';
+
+                if (data.availableVariants && data.availableVariants.length > 0) {
+                    const preferred = data.availableVariants.find(v =>
+                        v.model === 'Pro Max' && v.color === 'Silver' && v.storage === '256GB'
+                    );
+                    if (preferred) {
+                        isPreferredAvailable = true;
+                        preferredPickupTime = preferred.pickupTime || 'Check store';
+                    }
+                }
+
+                storeCard.className = `store-card ${isPreferredAvailable ? 'available' : 'unavailable'}`;
+
+                storeCard.innerHTML = `
+                    <div class="store-name">${data.storeName}</div>
+                    <div>${data.address || 'Address not available'}</div>
+                    <div class="availability-badge ${isPreferredAvailable ? 'available' : 'unavailable'}">
+                        ${isPreferredAvailable ? 'AVAILABLE' : 'Not Available'}
+                    </div>
+                    <div class="timestamp">
+                        ${isPreferredAvailable ?
+                            `<strong style="color: #4caf50;">Your model is available!</strong><br>Pickup: ${preferredPickupTime}` :
+                            'Your preferred model not yet available'}
+                    </div>
+                `;
+
+                container.appendChild(storeCard);
+            }
+        }
+
+        // Update other options available section
+        function updateOtherOptions(availability) {
+            const container = document.getElementById('other-options-container');
+
+            if (!availability || Object.keys(availability).length === 0) {
+                container.innerHTML = '<p>No data available yet.</p>';
+                return;
+            }
+
+            // Collect all available options (excluding user's preferred model)
+            let otherOptions = [];
+            const userPreference = 'iPhone 17 Pro Max - Silver - 256GB';
+
+            for (const [storeId, data] of Object.entries(availability)) {
+                if (data.availableVariants && data.availableVariants.length > 0) {
+                    data.availableVariants.forEach(variant => {
+                        const variantString = `iPhone 17 ${variant.model} - ${variant.color} - ${variant.storage}`;
+                        // Skip the user's preferred model
+                        if (variantString !== userPreference) {
+                            otherOptions.push({
+                                store: data.storeName,
+                                storeId: storeId,
+                                variant: variant,
+                                pickupTime: variant.pickupTime || 'Check store'
+                            });
+                        }
+                    });
+                }
+            }
+
+            if (otherOptions.length === 0) {
+                container.innerHTML = '<p style="color: #666;">No other models currently available for in-store pickup.</p>';
+            } else {
+                let html = '<div style="display: grid; gap: 10px;">';
+
+                // Group by model and variant
+                const grouped = {};
+                otherOptions.forEach(option => {
+                    const key = `${option.variant.model}-${option.variant.color}-${option.variant.storage}`;
+                    if (!grouped[key]) {
+                        grouped[key] = {
+                            variant: option.variant,
+                            stores: []
+                        };
+                    }
+                    grouped[key].stores.push({
+                        name: option.store,
+                        pickupTime: option.pickupTime
+                    });
+                });
+
+                Object.values(grouped).forEach(item => {
+                    const bgColor = item.variant.model === 'Pro Max' ? '#e8f5e9' : '#e3f2fd';
+                    const borderColor = item.variant.model === 'Pro Max' ? '#4caf50' : '#2196F3';
+
+                    html += `
+                        <div style="border: 2px solid ${borderColor}; background: ${bgColor}; padding: 12px; border-radius: 8px;">
+                            <strong>iPhone 17 ${item.variant.model}</strong> - ${item.variant.color} - ${item.variant.storage}
+                            <div style="margin-top: 8px; font-size: 0.9rem;">
+                                Available at: ${item.stores.map(s => `<span style="font-weight: bold;">${s.name}</span>`).join(', ')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+            }
+        }
+
+        // Update history display
+        async function updateHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+
+                const container = document.getElementById('history-container');
+
+                if (!data.history || data.history.length === 0) {
+                    container.innerHTML = '<p>No check history available yet.</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                data.history.forEach(check => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+
+                    const timestamp = new Date(check.timestamp);
+                    const availableStores = Object.values(check.results || {})
+                        .filter(s => s.available)
+                        .map(s => s.storeName)
+                        .join(', ');
+
+                    item.innerHTML = `
+                        <div>${timestamp.toLocaleString('en-SG')}</div>
+                        <div class="timestamp">
+                            ${availableStores ? `Available at: ${availableStores}` : 'No availability'}
+                            (${check.duration}ms)
+                        </div>
+                    `;
+
+                    container.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error('Failed to update history:', error);
+            }
+        }
+
+        // Run manual check
+        async function runManualCheck() {
+            if (isChecking) return;
+
+            try {
+                document.getElementById('check-btn').disabled = true;
+                document.getElementById('check-btn').textContent = 'Checking...';
+                showAlert('Running availability check...', 'info');
+
+                const response = await fetch('/api/check', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Check completed successfully!', 'success');
+                } else {
+                    showAlert('Check failed: ' + data.message, 'error');
+                }
+
+                // Refresh status
+                setTimeout(updateStatus, 1000);
+
+            } catch (error) {
+                showAlert('Failed to run check: ' + error.message, 'error');
+            }
+        }
+
+        // Send test SMS
+        async function sendTestSMS() {
+            try {
+                document.getElementById('test-sms-btn').disabled = true;
+                showAlert('Sending test SMS...', 'info');
+
+                const response = await fetch('/api/test-sms', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Test SMS sent successfully!', 'success');
+                } else {
+                    showAlert('Failed to send test SMS. Check your Twilio configuration.', 'error');
+                }
+
+            } catch (error) {
+                showAlert('Failed to send test SMS: ' + error.message, 'error');
+            } finally {
+                document.getElementById('test-sms-btn').disabled = false;
+            }
+        }
+
+        // Toggle scheduler
+        async function toggleScheduler() {
+            try {
+                const endpoint = schedulerPaused ? '/api/scheduler/resume' : '/api/scheduler/pause';
+                const response = await fetch(endpoint, { method: 'POST' });
+                const data = await response.json();
+
+                schedulerPaused = !schedulerPaused;
+                document.getElementById('toggle-scheduler').textContent =
+                    schedulerPaused ? 'Resume Scheduler' : 'Pause Scheduler';
+
+                showAlert(data.message, 'success');
+
+            } catch (error) {
+                showAlert('Failed to toggle scheduler: ' + error.message, 'error');
+            }
+        }
+
+        // Update check interval
+        async function updateInterval() {
+            const minutes = prompt('Enter new check interval in minutes (1-60):');
+
+            if (!minutes) return;
+
+            const value = parseInt(minutes);
+            if (isNaN(value) || value < 1 || value > 60) {
+                showAlert('Invalid interval. Must be between 1 and 60 minutes.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/config/interval', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ minutes: value })
+                });
+
+                const data = await response.json();
+                showAlert(data.message, 'success');
+
+                // Refresh status
+                setTimeout(updateStatus, 1000);
+
+            } catch (error) {
+                showAlert('Failed to update interval: ' + error.message, 'error');
+            }
+        }
+
+        // Show alert message
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+
+            container.innerHTML = '';
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        }
+
+        // Start the dashboard
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: iphone-17-checker
+    runtime: node
+    region: singapore  # or oregon if Singapore not available
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TWILIO_ACCOUNT_SID
+        sync: false  # Will be set manually in Render dashboard
+      - key: TWILIO_AUTH_TOKEN
+        sync: false  # Will be set manually in Render dashboard
+      - key: TWILIO_PHONE_FROM
+        sync: false  # Will be set manually in Render dashboard
+      - key: PHONE_TO
+        sync: false  # Will be set manually in Render dashboard
+      - key: PRODUCT_NAME
+        value: iPhone 17 Pro Max
+      - key: PRODUCT_STORAGE
+        value: 256GB
+      - key: PRODUCT_COLOR
+        value: Silver
+      - key: PRODUCT_SKU
+        value: MZ7C3ZP/A
+      - key: CHECK_INTERVAL
+        value: "1"
+      - key: CHECK_ENABLED
+        value: "true"
+      - key: STORE_IDS
+        value: R669,R673,R676
+      - key: COOLDOWN_MINUTES
+        value: "30"
+      - key: MAX_NOTIFICATIONS_PER_DAY
+        value: "10"
+      - key: PORT
+        value: "3000"
